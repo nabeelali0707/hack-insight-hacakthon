@@ -66,6 +66,27 @@ ismo:
   hourly_marginal_price:
     - {period: "2024-07..2026-09", published: "2026-10-15", title: "Hourly Marginal Price July 2024 to Sep 2026", url: "https://cmsadmin.ismo.gov.pk/storage/uploads/mo-data/Marginal Price_Hourly_Jul24toSep2026_ismo_XcG2NyJeOM.xlsx"}
 
+# Trusted documents for the Insight Agent (RAG). Official publishers only.
+documents:
+  - id: DOC-SOI24
+    title: "NEPRA State of Industry Report 2024"
+    publisher: "National Electric Power Regulatory Authority (NEPRA)"
+    url: "https://nepra.org.pk/publications/State%20of%20Industry%20Reports/State%20of%20Industry%20Report%202024.pdf"
+    licence: "Public regulatory publication (nepra.org.pk); robots.txt allows all. Cited with attribution."
+    kind: pdf
+  - id: DOC-IGCEP
+    title: "Indicative Generation Capacity Expansion Plan 2025-35 (Rev. 2)"
+    publisher: "Independent System and Market Operator (ISMO), filed with NEPRA"
+    url: "https://nepra.org.pk/Admission%20Notices/2025/08%20Aug/IGCEP_2025-35_R2.pdf"
+    licence: "Public regulatory filing (nepra.org.pk); robots.txt allows all. Cited with attribution."
+    kind: pdf
+  - id: DOC-KETOU
+    title: "K-Electric Tariff Structure (Time-of-Use peak hours, FCA, customer contacts)"
+    publisher: "K-Electric Limited"
+    url: "https://ke.com.pk/tariff-structure/"
+    licence: "Public web page (ke.com.pk); robots.txt disallows only /wp-admin/. Cited with attribution."
+    kind: html
+
 open_meteo:
   publisher: "Open-Meteo.com (ERA5 / ERA5-Land reanalysis from Copernicus Climate Change Service, ECMWF; forecasts from national weather services)"
   licence: "CC BY 4.0 (Open-Meteo data); ERA5 under the Copernicus licence. Free non-commercial API, no key."

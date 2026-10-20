@@ -159,6 +159,22 @@ def build(run_id: str | None = None, fetch: bool = True, include_forecast: bool 
     freshness = agent.review_freshness(latest_period, live_stamp)
     timings["quality_agent_s"] = round(time.time() - t, 2)
 
+    # Gate 2 (quality) runs BEFORE anything is published: a critical finding quarantines this build
+    agent.review_documents(entries)
+    log = agent.log_frame()
+    status = {
+        "run_id": run_id, "built_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "n_fix": int((log.action == "FIX").sum()), "n_fill": int((log.action == "FILL").sum()),
+        "n_flag": int((log.action == "FLAG").sum()), "n_pass": int((log.action == "PASS").sum()),
+        "n_critical": int((log.severity == "critical").sum()),
+        "n_pending_review": int(log["needs_review"].sum()),
+        **freshness,
+    }
+    status["overall"] = "RED" if status["n_critical"] else ("AMBER" if status["n_flag"] else "GREEN")
+    publish = status["overall"] != "RED"
+    status["published"] = publish
+    target_clean, target_gold = ("cleaned", "gold") if publish else ("quarantine", "quarantine")
+
     t = time.time()
     con = connect()
     counts = {}
@@ -173,27 +189,27 @@ def build(run_id: str | None = None, fetch: bool = True, include_forecast: bool 
     con.execute("INSERT INTO raw.fetch_log SELECT * FROM _f")
     con.unregister("_f")
 
-    # cleaned layer
-    counts["cleaned.ismo_profile"] = _write(con, "cleaned", "ismo_profile", ismo["profile"], CLEANED_DIR)
-    counts["cleaned.ismo_energy"] = _write(con, "cleaned", "ismo_energy", ismo["energy"], CLEANED_DIR)
-    counts["cleaned.ismo_national"] = _write(con, "cleaned", "ismo_national", ismo["national"], CLEANED_DIR)
-    counts["cleaned.ismo_genmix"] = _write(con, "cleaned", "ismo_genmix", ismo["genmix"], CLEANED_DIR)
-    counts["cleaned.price_hourly"] = _write(con, "cleaned", "price_hourly", price, CLEANED_DIR)
-    counts["cleaned.weather_hourly"] = _write(con, "cleaned", "weather_hourly", wx, CLEANED_DIR)
-    if not live.empty:
-        counts["cleaned.weather_live"] = _write(con, "cleaned", "weather_live", live, CLEANED_DIR)
-
-    # gold layer
-    ent = pd.DataFrame([{"code": k, **v} for k, v in entities().items()])
-    counts["gold.entity"] = _write(con, "gold", "entity", ent, PROCESSED_DIR)
-    for name, sql in GOLD_SQL.items():
-        if name == "weather_live_hourly" and live.empty:
+    # cleaned layer (or quarantine if the gate failed)
+    cdir = CLEANED_DIR if publish else None
+    for name, df in (("ismo_profile", ismo["profile"]), ("ismo_energy", ismo["energy"]),
+                     ("ismo_national", ismo["national"]), ("ismo_genmix", ismo["genmix"]),
+                     ("price_hourly", price), ("weather_hourly", wx), ("weather_live", live)):
+        if name == "weather_live" and live.empty:
             continue
-        counts[f"gold.{name}"] = _write(con, "gold", name, con.execute(sql).df(), PROCESSED_DIR)
+        qname = name if publish else f"clean_{name}"
+        counts[f"{target_clean}.{qname}"] = _write(con, target_clean, qname, df, cdir)
+
+    # gold layer: only when the gate passed - otherwise gold keeps the last good version
+    if publish:
+        ent = pd.DataFrame([{"code": k, **v} for k, v in entities().items()])
+        counts["gold.entity"] = _write(con, "gold", "entity", ent, PROCESSED_DIR)
+        for name, sql in GOLD_SQL.items():
+            if name == "weather_live_hourly" and live.empty:
+                continue
+            counts[f"gold.{name}"] = _write(con, "gold", name, con.execute(sql).df(), PROCESSED_DIR)
     timings["warehouse_s"] = round(time.time() - t, 2)
 
     # quality log (append-only) + review queue + status
-    log = agent.log_frame()
     con.execute("CREATE SCHEMA IF NOT EXISTS quality")
     con.register("_l", log)
     con.execute("CREATE TABLE IF NOT EXISTS quality.quality_log AS SELECT * FROM _l WHERE 1=0")
@@ -201,14 +217,6 @@ def build(run_id: str | None = None, fetch: bool = True, include_forecast: bool 
     con.unregister("_l")
     queue = log[log["needs_review"]]
     _write(con, "quality", "review_queue", queue)
-    status = {
-        "run_id": run_id, "built_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "n_fix": int((log.action == "FIX").sum()), "n_fill": int((log.action == "FILL").sum()),
-        "n_flag": int((log.action == "FLAG").sum()), "n_pass": int((log.action == "PASS").sum()),
-        "n_critical": int((log.severity == "critical").sum()), "n_pending_review": int(len(queue)),
-        **freshness,
-    }
-    status["overall"] = "RED" if status["n_critical"] else ("AMBER" if status["n_flag"] else "GREEN")
     _write(con, "quality", "status", pd.DataFrame([status]))
     con.close()
 

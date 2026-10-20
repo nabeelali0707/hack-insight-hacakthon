@@ -162,10 +162,26 @@ def fetch_weather_forecast(entries: dict, session: requests.Session | None = Non
     return results
 
 
+def fetch_documents(entries: dict, session: requests.Session | None = None) -> list[FetchResult]:
+    """Trusted documents for the Insight Agent. PDFs are immutable publications; the KE web
+    page is revisable (tariff notices change), so it is snapshotted by date."""
+    session = session or _session()
+    results = []
+    for d in sources().get("documents", []):
+        ext = "pdf" if d["kind"] == "pdf" else "html"
+        dest = RAW_DIR / "documents" / f"{d['id']}.{ext}"
+        results.append(_store(
+            entries, file_id=d["id"], source="document", title=d["title"], period=d["publisher"],
+            url=d["url"], dest=dest, licence=d["licence"], immutable=d["kind"] == "pdf", session=session,
+            timeout=300,
+        ))
+    return results
+
+
 def fetch_all(include_forecast: bool = True) -> list[FetchResult]:
     entries = mf.load()
     session = _session()
-    results = fetch_ismo(entries, session) + fetch_weather_archive(entries, session)
+    results = fetch_ismo(entries, session) + fetch_weather_archive(entries, session) + fetch_documents(entries, session)
     if include_forecast:
         results += fetch_weather_forecast(entries, session)
     mf.save(entries)

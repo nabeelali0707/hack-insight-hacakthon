@@ -504,8 +504,9 @@ class DataQualityAgent:
                 short = isna & (run_len <= MAX_FILL_GAP_HOURS)
                 long_ = isna & (run_len > MAX_FILL_GAP_HOURS)
                 if short.any():
-                    g[col] = g[col].interpolate(limit=MAX_FILL_GAP_HOURS, limit_area="inside")
-                    g.loc[short, "is_filled"] = True
+                    filled = g[col].interpolate(limit_area="inside")
+                    g.loc[short, col] = filled[short]   # only short gaps; long gaps stay missing
+                    g.loc[short & g[col].notna(), "is_filled"] = True
                     self.decide(check_id="DQ-WX-FILL", tool="gap_detector", table_name=table_name, entity=ent,
                                 rule=f"Gaps <= {MAX_FILL_GAP_HOURS} h in smooth hourly series", action="FILL",
                                 rows_affected=int(short.sum()),
@@ -529,6 +530,24 @@ class DataQualityAgent:
                             f"All {len(res):,} entity-hours within physical ranges."),
                     evidence={"failures": fails[:10]})
         return res
+
+    # ------------------------------------------------------------------ documents
+    def review_documents(self, entries: dict) -> None:
+        """Trusted RAG documents must exist and be what they claim to be (PDF magic bytes / HTML)."""
+        from ..config import ROOT
+        docs = [e for e in entries.values() if e.source == "document"]
+        bad = []
+        for e in docs:
+            p = ROOT / e.local_path
+            head = p.read_bytes()[:512] if p.exists() else b""
+            ok = head.startswith(b"%PDF") if e.local_path.endswith(".pdf") else b"<html" in head.lower() or b"<!doctype" in head.lower()
+            if not ok:
+                bad.append(e.file_id)
+        self.decide(check_id="DQ-DOC-VALID", tool="file_signature_check", table_name="documents",
+                    rule="Each trusted document must exist and match its declared type", action="FLAG" if bad else "PASS",
+                    rows_affected=len(bad), severity="warn" if bad else "info",
+                    reason=(f"Invalid or missing documents: {bad}; they are left out of the index." if bad else
+                            f"All {len(docs)} trusted documents present and valid."), evidence={"bad": bad})
 
     # ------------------------------------------------------------------ freshness
     def review_freshness(self, latest_ismo_period: pd.Timestamp, live_snapshot_utc: pd.Timestamp | None,
