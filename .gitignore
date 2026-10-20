@@ -13,6 +13,7 @@ data/cleaned/
 data/processed/
 data/*.duckdb
 data/*.duckdb.wal
+data/serve/
 data/index/
 models/*.joblib
 
