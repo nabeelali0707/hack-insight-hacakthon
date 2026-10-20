@@ -1,0 +1,46 @@
+{
+  "test_months": [
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-08",
+    "2026-09"
+  ],
+  "n_test_rows": 1680,
+  "baseline_mape": 17.96737882817921,
+  "model_mape": 13.612691022664745,
+  "model_mape_expost_weather": 12.412007197725076,
+  "improvement_pct": 24.236633774787308,
+  "ke_baseline_mae_mw": 338.0599404761905,
+  "ke_model_mae_mw": 216.32987073012288,
+  "ke_baseline_mape": 17.312415780224505,
+  "ke_model_mape": 10.914443944506964,
+  "peak_baseline_mape": 16.896463946258507,
+  "peak_model_mape": 12.88890830767012,
+  "coverage_80": 74.52380952380952,
+  "mean_interval_width_pct": 41.91783263043905,
+  "conformal_log_quantiles": [
+    -0.22020750049345386,
+    0.20010467771005686
+  ],
+  "n_calibration_residuals": 1440,
+  "best_params": {
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 15,
+    "l2_regularization": 1.0,
+    "max_iter": 400
+  },
+  "val_mape_best": 13.936533552590284,
+  "train_rows_final": 4296,
+  "feature_build_s": 20.41,
+  "final_fit_s": 1.166,
+  "trained_at_utc": "2026-10-20T17:18:29Z",
+  "seed": 42,
+  "declared_success": true,
+  "weakest_entity": {
+    "entity": "PESCO",
+    "model_mape": 17.59420107213834
+  }
+}

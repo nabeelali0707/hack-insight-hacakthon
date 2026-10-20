@@ -21,3 +21,8 @@ test:
 	$(PYTHON) -m pytest -q tests
 
 all: data
+
+## Train, evaluate once against the declared baseline, write report + figures
+model:
+	$(PYTHON) -m bijlicast.model.train
+	$(PYTHON) -m bijlicast.model.report
