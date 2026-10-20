@@ -24,14 +24,80 @@ const view = document.getElementById("view");
 const EVENING = [18, 22];
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Static mode (free Hugging Face static Space): the same views read JSON files exported by
+// `python -m bijlicast.static_export` instead of the live API.
+const STATIC = !!window.BIJLICAST_STATIC;
+function staticPath(path) {
+  const u = new URL(path, location.href), p = u.pathname.split("/api/")[1], q = u.searchParams;
+  const files = {
+    meta: () => "data/meta.json",
+    workspace: () => `data/workspace/${q.get("entity")}_${q.get("month")}.json`,
+    forecasts: () => `data/forecasts/${q.get("month")}.json`,
+    forecast_history: () => `data/history/${q.get("entity")}_${q.get("month")}.json`,
+    cost: () => `data/cost/${q.get("entity")}_${q.get("period") || "latest"}.json`,
+    performance: () => `data/performance/${q.get("entity") || "KE"}.json`,
+    confidence: () => `data/confidence/${q.get("entity") || "KE"}.json`,
+    quality: () => "data/quality.json",
+    runs: () => "data/runs.json",
+    sources: () => "data/sources.json",
+    briefs: () => `data/briefs_${q.get("lang") || "en"}.json`,
+  };
+  return files[p] ? files[p]() : null;
+}
+let prepared = null;
+const toks = (s) => new Set((s.toLowerCase().match(/[\p{L}\p{N}]+/gu) || []).filter((w) => w.length > 1));
+async function staticAsk({ question, lang }) {
+  prepared = prepared || (await (await fetch("data/prepared_answers.json", { cache: "no-cache" })).json());
+  const qt = toks(question);
+  let best = null, score = 0;
+  for (const a of prepared.answers) {
+    const at = toks(a.question);
+    let s = [...qt].filter((w) => at.has(w)).length / Math.max(qt.size, 1);
+    if (a.lang === lang) s += 0.05;
+    if (s > score) { score = s; best = a; }
+  }
+  if (!best || score < 0.4) {
+    return { question, lang, status: "dont_know", prepared: true, row_ids: [], citations: [], asked_at_utc: prepared.generated_at_utc,
+      text: t("static_none") };
+  }
+  return { ...best, prepared: true, matched_question: best.question };
+}
+// Source ages are recomputed in the browser, so a stale export shows as stale.
+function freshen(conf) {
+  const st = conf?.status;
+  if (!st) return conf;
+  const [y, m] = st.ismo_latest_period.split("-").map(Number);
+  st.ismo_age_days = Math.floor((Date.now() - Date.UTC(y, m, 0)) / 86400000);
+  st.ismo_stale = st.ismo_age_days > 50;
+  if (st.live_snapshot_utc) {
+    const ts = Date.parse(String(st.live_snapshot_utc).replace(" ", "T"));
+    st.live_age_hours = +((Date.now() - ts) / 3600000).toFixed(1);
+    st.live_stale = st.live_age_hours > 2;
+  }
+  conf.freshness_level = st.ismo_stale && st.live_stale ? "RED" : (st.ismo_stale || st.live_stale ? "AMBER" : "GREEN");
+  return conf;
+}
+
 async function api(path, opts) {
+  if (STATIC) {
+    if (path.startsWith("/api/ask")) return staticAsk(JSON.parse(opts.body));
+    const file = staticPath(path);
+    const r = await fetch(file, { cache: "no-cache" });
+    if (!r.ok) throw new Error(r.status === 404 ? t("static_404") : `HTTP ${r.status}`);
+    const data = await r.json();
+    const action = new URL(path, location.href).searchParams.get("action");
+    if (path.startsWith("/api/quality") && action) data.decisions = data.decisions.filter((d) => d.action === action);
+    if (path.startsWith("/api/confidence")) return freshen(data);
+    return data;
+  }
   const r = await fetch(path, opts);
   if (!r.ok) {
     let msg = r.statusText;
     try { msg = (await r.json()).detail || msg; } catch { /* not json */ }
     throw new Error(msg || `HTTP ${r.status}`);
   }
-  return r.json();
+  const data = await r.json();
+  return path.startsWith("/api/confidence") ? freshen(data) : data;
 }
 const entName = (code) => state.meta?.entities.find((e) => e.code === code)?.name || code;
 const entShort = (code) => (code === "KE" ? "K-Electric" : code);
@@ -93,7 +159,7 @@ function filtersHTML({ months = true } = {}) {
   return `<div class="filters">
     <div class="field"><label for="f-entity">${t("entity")}</label><select id="f-entity" class="select">${ents}</select></div>
     ${months ? `<div class="field"><label for="f-month">${t("month")}</label><select id="f-month" class="select">${mos}</select></div>` : ""}
-    <div class="data-note"><span class="dot ${state.meta.quality?.overall === "RED" ? "red" : ""}"></span>${t("live")} · ${t("snapshot")} ${pkt(state.meta.snapshot_utc)} ${t("pkt")}</div>
+    <div class="data-note"><span class="dot ${state.meta.quality?.overall === "RED" ? "red" : ""}"></span>${STATIC ? t("published") : t("live")} · ${t("snapshot")} ${pkt(state.meta.snapshot_utc)} ${t("pkt")}</div>
   </div>`;
 }
 function bindFilters(onChange) {
@@ -338,6 +404,9 @@ function openDrawer() {
   document.addEventListener("keydown", escClose);
   renderThread();
   root.querySelector("#dr-in").focus();
+  if (STATIC && !prepared) {
+    fetch("data/prepared_answers.json", { cache: "no-cache" }).then((r) => r.json()).then((p) => { prepared = p; renderThread(); }).catch(() => {});
+  }
 }
 function escClose(e) { if (e.key === "Escape") closeDrawer(); }
 function closeDrawer() {
@@ -348,20 +417,24 @@ function closeDrawer() {
 function docHref(url) {
   if (!url) return null;
   if (/^https?:/.test(url)) return url;
-  if (url.startsWith("docs/")) return `/files/docs/${url.slice(5)}`;
-  if (url.startsWith("reports/")) return `/files/reports/${url.slice(8)}`;
+  if (url.startsWith("docs/")) return `files/docs/${url.slice(5)}`;
+  if (url.startsWith("reports/")) return `files/reports/${url.slice(8)}`;
   return null;
 }
 function renderThread() {
   const ctx = document.getElementById("ctx"), th = document.getElementById("thread");
   if (!ctx) return;
   ctx.innerHTML = `<span>${t("ctx")}:</span><span class="chip">${esc(entShort(state.entity))}</span><span class="chip">${monthName(state.month, state.lang)}</span><span class="chip">${state.lang === "ur" ? "اردو" : "English"}</span>`;
-  th.innerHTML = state.thread.map((m) => {
+  const suggestions = STATIC && prepared ? `<div class="ev"><h4>${t("try_these")}</h4><div class="filter-chips">${prepared.answers
+    .filter((a) => a.lang === state.lang && a.featured).slice(0, 8)
+    .map((a) => `<button type="button" data-suggest="${esc(a.question)}">${esc(a.question)}</button>`).join("")}</div></div>` : "";
+  th.innerHTML = (STATIC ? `<div class="banner warn">${icons.info}<span>${t("static_mode")}</span></div>${suggestions}` : "") + state.thread.map((m) => {
     const q = `<div class="q" dir="auto">${esc(m.q)}</div>`;
     if (m.loading) return q + `<div class="a">${skel(14)}<div style="height:8px"></div>${skel(14)}<div class="period" style="margin-top:8px">${t("thinking")}</div></div>`;
     if (m.error) return q + `<div class="a"><div class="banner bad">${icons.warn}<span>${esc(t("ask_err", { e: m.error }))}</span></div></div>`;
     const a = m.ans, rtl = a.lang === "ur";
-    const paras = a.text.split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join("");
+    const paras = (a.prepared && a.matched_question ? `<p class="period">${esc(t("prepared_note", { q: a.matched_question, t: pkt(a.asked_at_utc) }))}</p>` : "") +
+      a.text.split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join("");
     const cites = a.citations.length ? `<ul>${a.citations.map((c) => {
       const href = docHref(c.url);
       const label = `${esc(c.title)}${c.page ? ` · p.${c.page}` : ""}`;
@@ -372,6 +445,7 @@ function renderThread() {
       <div class="a-body" dir="${rtl ? "rtl" : "ltr"}">${paras}</div>
       <div class="ev"><h4>${t("ev_sources")}</h4>${cites}${rows}</div></div>`;
   }).join("");
+  th.querySelectorAll("[data-suggest]").forEach((b) => b.addEventListener("click", () => ask(b.dataset.suggest)));
   th.scrollTop = th.scrollHeight;
 }
 async function ask(q) {
@@ -517,9 +591,9 @@ async function viewAnalysis() {
     <div class="row-two" style="margin-top:16px">${grp("entity")}${grp("season")}</div>
     <div class="row-two" style="margin-top:16px">${grp("province")}${grp("hour_band")}</div>
     <section class="card" style="margin-top:16px"><h2>Figures</h2>
-      <img class="fig" style="margin-top:10px" src="/files/reports/figures/baseline_vs_model.png" alt="Bar chart: test MAPE by entity, model versus declared baseline">
-      <img class="fig" style="margin-top:10px" src="/files/reports/figures/ke_profiles_test.png" alt="K-Electric hourly profiles for each test month: actual, model with 80% interval, and baseline">
-      <img class="fig" style="margin-top:10px" src="/files/reports/figures/errors_by_group.png" alt="Test MAPE by season and hour band, model versus baseline"></section>`;
+      <img class="fig" style="margin-top:10px" src="files/reports/figures/baseline_vs_model.png" alt="Bar chart: test MAPE by entity, model versus declared baseline">
+      <img class="fig" style="margin-top:10px" src="files/reports/figures/ke_profiles_test.png" alt="K-Electric hourly profiles for each test month: actual, model with 80% interval, and baseline">
+      <img class="fig" style="margin-top:10px" src="files/reports/figures/errors_by_group.png" alt="Test MAPE by season and hour band, model versus baseline"></section>`;
 }
 
 // ------------------------------------------------------------------ DATA (sources)
@@ -536,14 +610,14 @@ async function viewData() {
 // ------------------------------------------------------------------ REPORTS
 async function viewReports() {
   const docs = [
-    ["/files/docs/Summary.pdf", "Summary.pdf", "One-page summary"],
-    ["/files/docs/datasetproposal.pdf", "datasetproposal.pdf", "Dataset proposal: sources, licences, volume"],
-    ["/files/reports/model_report.md", "model_report.md", "Model report: baseline vs model, errors by group"],
-    ["/files/docs/optimization_log.md", "optimization_log.md", "Optimization log"],
-    ["/files/docs/business_model.md", "business_model.md", "Business model"],
-    ["/files/docs/problem_analysis.md", "problem_analysis.md", "Problem analysis"],
-    ["/files/docs/baseline_declaration.md", "baseline_declaration.md", "Baseline declaration"],
-    ["/files/reports/quality_log_latest.csv", "quality_log_latest.csv", "Data Quality Agent decisions (latest build)"],
+    ["files/docs/Summary.pdf", "Summary.pdf", "One-page summary"],
+    ["files/docs/datasetproposal.pdf", "datasetproposal.pdf", "Dataset proposal: sources, licences, volume"],
+    ["files/reports/model_report.md", "model_report.md", "Model report: baseline vs model, errors by group"],
+    ["files/docs/optimization_log.md", "optimization_log.md", "Optimization log"],
+    ["files/docs/business_model.md", "business_model.md", "Business model"],
+    ["files/docs/problem_analysis.md", "problem_analysis.md", "Problem analysis"],
+    ["files/docs/baseline_declaration.md", "baseline_declaration.md", "Baseline declaration"],
+    ["files/reports/quality_log_latest.csv", "quality_log_latest.csv", "Data Quality Agent decisions (latest build)"],
   ];
   view.innerHTML = `<div class="page-head"><div><h1>${t("rep_title")}</h1><div class="sub">${t("rep_sub")}</div></div></div>
     <section class="card"><ul class="doc-list">${docs.map(([h, n, d]) => `<li><a href="${h}" target="_blank" rel="noopener"><b>${esc(n)}</b><span>${esc(d)}</span></a></li>`).join("")}</ul></section>`;
@@ -555,7 +629,7 @@ async function viewSettings() {
     <section class="card"><h2>${t("set_lang")}</h2><div class="lang" style="width:fit-content;margin-top:10px" role="group" aria-label="${t("set_lang")}">
       <button type="button" data-lang="en" aria-pressed="${state.lang === "en"}">English</button><button type="button" data-lang="ur" aria-pressed="${state.lang === "ur"}">اردو</button></div></section>
     <section class="card"><h2>${t("set_about")}</h2><p class="reason">${t("set_about_t")}</p>
-      <p class="period">${t("snapshot")}: ${pkt(state.meta.snapshot_utc)} PKT · forecast generated ${pkt(state.meta.forecast_generated_at_utc)} PKT · API: <a href="/docs" target="_blank" rel="noopener">/docs</a></p></section>`;
+      <p class="period">${t("snapshot")}: ${pkt(state.meta.snapshot_utc)} PKT · forecast generated ${pkt(state.meta.forecast_generated_at_utc)} PKT${STATIC ? "" : ` · API: <a href="/docs" target="_blank" rel="noopener">/docs</a>`}</p></section>`;
   view.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
 }
 

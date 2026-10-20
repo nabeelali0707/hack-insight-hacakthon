@@ -1,0 +1,5 @@
+# Public dashboard on a free Hugging Face static Space.
+# hourly_push: after every successful pipeline run the Supervisor re-exports the dashboard data
+# and uploads data/** with the owner's own `hf auth login` credentials. Set to false to stop.
+hf_space: nabeelali0960/bijlicast
+hourly_push: false

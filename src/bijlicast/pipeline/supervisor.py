@@ -139,6 +139,14 @@ def run_once(run_id: str | None = None, steps=None) -> dict:
     _record(rec)
     from ..serving import publish_snapshot
     publish_snapshot()  # the web app reads this read-only copy, never the live warehouse
+    if rec["status"] == "success":
+        try:  # refresh the public static Space (config/deploy.yaml); never fails the run
+            from ..static_export import publish_hourly
+            url = publish_hourly(rec["run_id"])
+            if url:
+                print(f"public dashboard refreshed: {url}")
+        except Exception as exc:
+            print(f"public dashboard refresh skipped: {type(exc).__name__}: {str(exc)[:200]}")
     if rec["status"] == "failed":
         raise RuntimeError(rec["error"])
     return rec

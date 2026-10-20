@@ -69,6 +69,12 @@ export const STR = {
     rep_title: "Reports", rep_sub: "Submission documents generated from the gold tables",
     set_title: "Settings", set_lang: "Interface language", set_about: "About this data",
     set_about_t: "The dashboard reads a read-only snapshot refreshed after every hourly pipeline run. Times are Pakistan Standard Time (PKT, UTC+5).",
+    published: "Published data",
+    static_mode: "This public page shows answers prepared by the BijliCast Insight Agent after the latest pipeline run. Live free-text questions run on the BijliCast server (see the GitHub repository).",
+    static_none: "I don't know. This public page only has prepared answers, and none matches this question closely enough. Pick one of the suggested questions above, or run BijliCast locally to ask anything.",
+    static_404: "No exported data exists for this selection yet.",
+    prepared_note: "Prepared answer to “{q}” · generated {t} PKT",
+    try_these: "Prepared questions",
   },
   ur: {
     skip: "مواد پر جائیں",
@@ -138,6 +144,12 @@ export const STR = {
     rep_title: "رپورٹس", rep_sub: "گولڈ ٹیبلز سے تیار شدہ دستاویزات",
     set_title: "ترتیبات", set_lang: "زبان", set_about: "اس ڈیٹا کے بارے میں",
     set_about_t: "ڈیش بورڈ ایک ریڈ اونلی اسنیپ شاٹ پڑھتا ہے جو ہر گھنٹے کی پائپ لائن کے بعد تازہ ہوتا ہے۔ اوقات پاکستانی وقت (UTC+5) میں ہیں۔",
+    published: "شائع شدہ ڈیٹا",
+    static_mode: "یہ عوامی صفحہ تازہ ترین پائپ لائن رن کے بعد بجلی کاسٹ انسائٹ ایجنٹ کے تیار کردہ جوابات دکھاتا ہے۔ کوئی بھی سوال پوچھنے کے لیے بجلی کاسٹ سرور درکار ہے (گٹ ہب ریپوزٹری دیکھیں)۔",
+    static_none: "مجھے معلوم نہیں۔ اس عوامی صفحے پر صرف تیار شدہ جوابات ہیں اور کوئی بھی اس سوال سے کافی مطابقت نہیں رکھتا۔ اوپر دیے گئے سوالات میں سے کوئی منتخب کریں۔",
+    static_404: "اس انتخاب کے لیے ابھی کوئی ڈیٹا موجود نہیں۔",
+    prepared_note: "“{q}” کا تیار شدہ جواب · {t} PKT",
+    try_these: "تیار شدہ سوالات",
   },
 };
 
