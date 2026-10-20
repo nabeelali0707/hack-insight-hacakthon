@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Data: rebuilt by `make data` (manifest.csv is committed)
+data/raw/
+data/cleaned/
+data/processed/
+data/*.duckdb
+data/*.duckdb.wal
+data/index/
+models/*.joblib
+
+# Secrets
+.env
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Prefect local state
+.prefect/

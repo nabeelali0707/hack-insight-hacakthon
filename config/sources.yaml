@@ -1,0 +1,95 @@
+# BijliCast source registry.
+# Every raw file the pipeline fetches is declared here and recorded in manifest.csv
+# (source, query/url, fetch time, SHA-256, licence).
+
+ismo:
+  publisher: "Independent System and Market Operator (ISMO), Government of Pakistan"
+  landing_page: "https://www.ismo.gov.pk/dashboard"
+  licence: >-
+    Public information published on the ISMO dashboard "for general information and
+    awareness purposes" (ISMO dashboard disclaimer). Attribution: ISMO. robots.txt allows all.
+  # Files moved from ismo.gov.pk/admin/storage to cmsadmin.ismo.gov.pk/storage; the
+  # fetcher rewrites old links to the new host.
+  url_rewrite:
+    from: "https://ismo.gov.pk/admin/storage/"
+    to: "https://cmsadmin.ismo.gov.pk/storage/"
+
+  # Monthly workbooks behind the dashboard tab "DISCO's Consumption".
+  # Sheets include: KE-Demand (24 hourly values), DISCOs Demand (9 DISCOs x 24 hours),
+  # DISCO Consumption (monthly energy), and, in newer files, Marginal Cost - Demand
+  # and Generation Mix. `period` is the month the file describes, as titled by ISMO.
+  disco_monthly:
+    - {period: "2023-02", published: "2023-02-28", title: "DISCO Consumption 28-02-23", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/28 Feb 2023_ismo_7ZMMT5xUPH.xlsx"}
+    - {period: "2023-02", published: "2023-02-28", title: "DISCO Consumption", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO Consumption 28-02-23_ismo_qVFq843hnG.xlsx"}
+    - {period: "2023-09", published: "2023-10-12", title: "DISCO's Consumption Sep 2023", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Sep 2023 Market Stats_ismo_oJSxIKjT8t.xlsx"}
+    - {period: "2023-10", published: "2023-11-10", title: "Market Statistics Oct 2023 (System at Glance tab)", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Market Statistics Oct 2023_ismo_e6BfYK5JxX.xlsx"}
+    - {period: "2023-11", published: "2023-12-12", title: "DISCO's Consumption Nov 23", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Nov 23_ismo_I6eqGE99qE4OUWMcCntFlWbMYk8yE4G1b6bNdPlvso41sAxPqPhOwhthjF5VsFBCH4sHM4tUVQeXmqiVZFGFup7RHeCikjov1wAa.xlsx"}
+    - {period: "2023-12", published: "2024-01-17", title: "DISCO's Consumption Dec 23", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Dec 2023_ismo_8vpzOF1EPNqasjFjJaAHvFhTy6FAbfCTJkKeM2ZcNDoUuBln3tPUBGmsnlx60J5rkjNK98e6svdkTM2eIBSXzMFy70LumBuUbs3S.xlsx"}
+    - {period: "2024-01", published: "2024-02-15", title: "DISCO's Consumption Jan 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Jan 24_ismo_n1FHqIN0mJZReoG7JP34w2VgXOgwXwSWjkZddp9R6XYpp2yqg2tQrxtcQjEDUE2CQPN3AQad4v8xoKsld1c90oxVzxVBeD5OYNJG.xlsx"}
+    - {period: "2024-02", published: "2024-03-15", title: "DISCO's Consumption Feb 2024", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Feb 24_ismo_lNeqTbtM6D.xlsx"}
+    - {period: "2024-03", published: "2024-04-17", title: "DISCO's Consumption Mar 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Mar 24_ismo_9DDpLz6wOc.xlsx"}
+    - {period: "2024-04", published: "2024-05-15", title: "DISCO's Consumption April 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption April 24_ismo_IKSYs3jO0b.xlsx"}
+    - {period: "2024-05", published: "2024-07-02", title: "DISCO's Consumption May 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption May 24_ismo_MrORtAgTcV.xlsx"}
+    - {period: "2024-06", published: "2024-08-07", title: "DISCO's Consumption June 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption June 24 (2)_ismo_uD0dEmgvbr.xlsx"}
+    - {period: "2024-07", published: "2024-08-18", title: "DISCO's Consumption July 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/July - 2024 WEBSITE UPLOAD_ismo_jIqr3eBpwz.xlsx"}
+    - {period: "2024-08", published: "2024-09-20", title: "DISCO's Consumption Aug 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Aug 24_ismo_IQgM6njldK.xlsx"}
+    - {period: "2024-09", published: "2024-10-18", title: "DISCO's Consumption Sep 2024", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Sep 2024_ismo_Ld2dK0NSQL.xlsx"}
+    - {period: "2024-10", published: "2024-11-18", title: "DISCO's Consumption Oct 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Oct 24_ismo_kr5dCgXdUO.xlsx"}
+    - {period: "2024-11", published: "2024-12-18", title: "DISCO's Consumption Nov 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Nov 24_ismo_7us1gDwKvg.xlsx"}
+    - {period: "2024-12", published: "2025-01-14", title: "DISCO's Consumption Dec 24", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Dec 24_ismo_ocDFLgimlR.xlsx"}
+    - {period: "2025-01", published: "2025-02-25", title: "DISCO's Consumption Jan 25", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Jan 2025_ismo_VFjbXYx4nb.xlsx"}
+    - {period: "2025-02", published: "2025-03-18", title: "DISCO's Consumption Feb 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Feb - 2025 WEBSITE UPLOAD_ismo_kzNjff3rzC.xlsx"}
+    - {period: "2025-03", published: "2025-04-17", title: "DISCO's Consumption Mar 25", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Mar 25_ismo_2WnkhpS917.xlsx"}
+    - {period: "2025-04", published: "2025-06-04", title: "DISCO's Consumption April 25", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/April - 2025 WEBSITE UPLOAD_ismo_O3jlDMDxxv.xlsx"}
+    - {period: "2025-05", published: "2025-06-20", title: "DISCO's Consumption May 25", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption May 25_ismo_3Lsx4eiKgr.xlsx"}
+    - {period: "2025-06", published: "2025-07-21", title: "DISCO's Consumption Jun 25", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Jun 25_ismo_NUIhzQb3D2.xlsx"}
+    - {period: "2025-07", published: "2025-08-19", title: "DISCO's Consumption July 25", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption July25_ismo_mmWq2iZ7I8.xlsx"}
+    - {period: "2025-08", published: "2025-09-18", title: "DISCO's Consumption August 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption August 25_ismo_OIHOuCA9Ln.xlsx"}
+    - {period: "2025-09", published: "2025-10-17", title: "DISCO's Consumption - September 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/DISCO's Consumption Sep 25_ismo_Y6DaVtyxyg.xlsx"}
+    - {period: "2025-10", published: "2025-11-25", title: "DISCO's Consumption October 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Final -Oct- 2025 WEBSITE UPLOAD_Final_ismo_1KFlRWdumv.xlsx"}
+    - {period: "2025-11", published: "2025-12-02", title: "November 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Final -Oct- 2025 WEBSITE UPLOAD November_ismo_cOhOI93Dih.xlsx"}
+    - {period: "2025-11", published: "2025-12-02", title: "November 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Final -Oct- 2025 WEBSITE UPLOAD November_ismo_xrMyKUu6YL.xlsx"}
+    - {period: "2025-11", published: "2025-12-04", title: "November 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Final -Oct- 2025 WEBSITE UPLOAD November_ismo_AAZtPLft1s.xlsx"}
+    - {period: "2025-12", published: "2026-01-14", title: "December 2025", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Final -Oct- 2025 WEBSITE UPLOAD Dec updated_ismo_395J3DkaqY.xlsx"}
+    - {period: "2026-01", published: "2026-02-01", title: "DISCOs Consumption January 2026", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Jan 2026 Website Upload_ismo_g2sVelgR42.xlsx"}
+    - {period: "2026-02", published: "2026-03-18", title: "Feb 2026", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Feb 2026 Website Upload_ismo_Jv2tGXeGoM.xlsx"}
+    - {period: "2026-03", published: "2026-04-15", title: "March 2026", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Mar 2026 Website Upload_ismo_FPRJsFEnvC.xlsx"}
+    - {period: "2026-04", published: "2026-04-25", title: "DISCO Consumption", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/Apr 2026 Website Upload_ismo_okC0bATDbN.xlsx"}
+    - {period: "2026-05", published: "2026-06-15", title: "DISCOs Consumption May 2026", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/May 2026 Website Upload_ismo_h3mLL5w7Ig.xlsx"}
+    - {period: "2026-06", published: "2026-06-15", title: "June 2026", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/June 2026 Website Upload_ismo_A0DXnjB6me.xlsx"}
+    - {period: "2026-06", published: "2026-06-16", title: "DISCOs Consumption June 2026", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/June 2026 Website Upload_ismo_s93ictOaMQ.xlsx"}
+    - {period: "2026-07", published: "2026-08-16", title: "DISCOs Consumption July 2026", url: "https://ismo.gov.pk/admin/storage/uploads/mo-data/July 2026 Website Upload_ismo_kGnR4EnWYa.xlsx"}
+    - {period: "2026-08", published: "2026-09-15", title: "DISCOs Consumption Aug 2026", url: "https://cmsadmin.ismo.gov.pk/storage/uploads/mo-data/Aug 2026 Website Upload_ismo_Hs1DaMggD3.xlsx"}
+    - {period: "2026-09", published: "2026-10-15", title: "DISCOs Consumption Sep 2026", url: "https://cmsadmin.ismo.gov.pk/storage/uploads/mo-data/Sep 2026 Website Upload_ismo_VLOS1E37b6.xlsx"}
+
+  # Cumulative hourly file behind the tab "Hourly Marginal Price Data".
+  hourly_marginal_price:
+    - {period: "2024-07..2026-09", published: "2026-10-15", title: "Hourly Marginal Price July 2024 to Sep 2026", url: "https://cmsadmin.ismo.gov.pk/storage/uploads/mo-data/Marginal Price_Hourly_Jul24toSep2026_ismo_XcG2NyJeOM.xlsx"}
+
+open_meteo:
+  publisher: "Open-Meteo.com (ERA5 / ERA5-Land reanalysis from Copernicus Climate Change Service, ECMWF; forecasts from national weather services)"
+  licence: "CC BY 4.0 (Open-Meteo data); ERA5 under the Copernicus licence. Free non-commercial API, no key."
+  archive_endpoint: "https://archive-api.open-meteo.com/v1/archive"
+  forecast_endpoint: "https://api.open-meteo.com/v1/forecast"
+  archive_start: "2022-01-01"
+  hourly_vars:
+    - temperature_2m
+    - relative_humidity_2m
+    - dew_point_2m
+    - apparent_temperature
+    - precipitation
+    - cloud_cover
+    - wind_speed_10m
+    - shortwave_radiation
+  # One weather point per entity: the headquarters city of each distribution company.
+  entities:
+    KE:    {name: "K-Electric",                                  city: "Karachi",    province: "Sindh",        lat: 24.8607, lon: 67.0011}
+    HESCO: {name: "Hyderabad Electric Supply Co.",               city: "Hyderabad",  province: "Sindh",        lat: 25.3960, lon: 68.3578}
+    SEPCO: {name: "Sukkur Electric Power Co.",                   city: "Sukkur",     province: "Sindh",        lat: 27.7052, lon: 68.8574}
+    LESCO: {name: "Lahore Electric Supply Co.",                  city: "Lahore",     province: "Punjab",       lat: 31.5204, lon: 74.3587}
+    FESCO: {name: "Faisalabad Electric Supply Co.",              city: "Faisalabad", province: "Punjab",       lat: 31.4504, lon: 73.1350}
+    GEPCO: {name: "Gujranwala Electric Power Co.",               city: "Gujranwala", province: "Punjab",       lat: 32.1877, lon: 74.1945}
+    MEPCO: {name: "Multan Electric Power Co.",                   city: "Multan",     province: "Punjab",       lat: 30.1575, lon: 71.5249}
+    IESCO: {name: "Islamabad Electric Supply Co.",               city: "Islamabad",  province: "ICT/Punjab",   lat: 33.6844, lon: 73.0479}
+    PESCO: {name: "Peshawar Electric Supply Co.",                city: "Peshawar",   province: "Khyber Pakhtunkhwa", lat: 34.0151, lon: 71.5249}
+    QESCO: {name: "Quetta Electric Supply Co.",                  city: "Quetta",     province: "Balochistan",  lat: 30.1798, lon: 66.9750}
