@@ -75,7 +75,8 @@ def export_runs(path: str = "reports/prefect_runs.csv") -> int:
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "run"
     if cmd == "serve":
-        bijlicast_hourly.serve(name="hourly", cron="5 * * * *", tags=["hackinsight", "bijlicast"])
+        # limit=1: never two runs at once (e.g. late runs after the laptop wakes) - DuckDB has one writer
+        bijlicast_hourly.serve(name="hourly", cron="5 * * * *", tags=["hackinsight", "bijlicast"], limit=1)
     elif cmd == "export":
         print(f"exported {export_runs()} runs to reports/prefect_runs.csv")
     else:
