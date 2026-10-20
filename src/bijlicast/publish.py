@@ -158,8 +158,9 @@ def summary() -> str:
     doc = SimpleDocTemplate(str(path), pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
                             topMargin=10 * mm, bottomMargin=8 * mm, title="BijliCast Summary")
     el = [Paragraph("BijliCast: hourly demand intelligence for K-Electric &amp; Pakistan's DISCOs", H1),
-          Paragraph("HackInsight '26 &middot; Energy track &middot; Every number below is generated from gold tables "
-                    "(python -m bijlicast.publish summary).", SMALL),
+          Paragraph("HackInsight '26 &middot; Energy track &middot; All results are generated from gold tables "
+                    "(python -m bijlicast.publish summary); running-cost figures are stated assumptions "
+                    "(docs/business_model.md).", SMALL),
           Paragraph("Problem &amp; user", H2),
           Paragraph("K-Electric's procurement desk must decide how much grid power to plan for each hour of next month. "
                     "Under Pakistan's new CTBCM market, and with marginal prices up sharply since the Feb 2026 fuel "

@@ -4,7 +4,7 @@
 PYTHON ?= python
 export PYTHONPATH := src
 
-.PHONY: data data-fast quality model optimize forecast agent golden flow serve export-runs test all
+.PHONY: data data-fast quality model optimize forecast agent golden flow serve export-runs publish test all
 
 ## Rebuild everything from an empty data/ folder: fetch + SHA-256 verify -> cleaned -> gold -> quality checks
 data:
@@ -49,6 +49,11 @@ serve:
 
 export-runs:
 	$(PYTHON) -m bijlicast.pipeline.flow export
+
+## Regenerate docs/datasetproposal.pdf and the one-page docs/Summary.pdf from gold tables
+publish:
+	$(PYTHON) -m bijlicast.publish proposal
+	$(PYTHON) -m bijlicast.publish summary
 
 test:
 	$(PYTHON) -m pytest -q tests
