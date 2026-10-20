@@ -510,6 +510,12 @@ class InsightAgent:
     def _docs(self, d, q, lang):
         hits = self.ret.search(q, k=4, kinds=("official",))
         good = hits[(hits.dense >= 0.45) | ((hits.dense >= 0.35) & (hits.bm25 >= 0.5))]
+        if re.search(r"peak\s*(hour|time)|time[\s-]*of[\s-]*use|\btou\b|پیک", q, re.I):
+            # peak-hour questions: K-Electric's own published ToU window is the authoritative source
+            tou = self.ret.search("Time of Use ToU peak time April October off-peak hours", k=1, doc_ids=["DOC-KETOU"])
+            if len(tou):
+                tou = tou.assign(score=max(float(good.score.max()) if len(good) else 0, float(tou.score.iloc[0])) + 1)
+                good = pd.concat([tou, good]).drop_duplicates("chunk_id")
         if good.empty:
             best = f"{hits.dense.max():.2f}" if len(hits) else "n/a"
             return self._dont_know(d, lang, "None of the trusted documents (NEPRA State of Industry 2024, ISMO IGCEP "

@@ -29,3 +29,6 @@ Thumbs.db
 
 # Prefect local state
 .prefect/
+
+# Deployment bundle (assembled by deploy/publish_space.py)
+build/

@@ -1,0 +1,21 @@
+# Runtime dependencies for the Space (torch is installed separately as a CPU wheel).
+# Pins match the versions the model was trained and evaluated with.
+duckdb==1.5.6
+pandas==3.0.6
+numpy==2.5.4
+scikit-learn==1.9.1
+joblib==1.6.0
+openpyxl==3.1.5
+requests==2.34.2
+urllib3==2.8.0
+PyYAML==6.0.3
+pandera==0.34.1
+holidays==0.107
+pyarrow==26.0.0
+matplotlib==3.11.2
+rank-bm25==0.2.2
+pypdf==6.21.1
+sentence-transformers==6.1.0
+faiss-cpu==1.15.1
+fastapi==0.140.0
+uvicorn==0.54.0
