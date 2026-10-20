@@ -72,6 +72,8 @@ open_meteo:
   archive_endpoint: "https://archive-api.open-meteo.com/v1/archive"
   forecast_endpoint: "https://api.open-meteo.com/v1/forecast"
   archive_start: "2022-01-01"
+  # Pinned so `make data` rebuilds the same training data; live data comes from the forecast endpoint.
+  archive_end: "2026-10-12"
   hourly_vars:
     - temperature_2m
     - relative_humidity_2m

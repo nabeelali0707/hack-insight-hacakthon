@@ -1,0 +1,14 @@
+# Reference calendar used by the Data Quality Agent (to explain anomalies) and the model.
+# Ramadan dates in Pakistan follow local moon sighting (Ruet-e-Hilal Committee); dates
+# below are the announced/observed first and last fasting days, +-1 day for 2026.
+ramadan:
+  - {year: 2023, start: "2023-03-24", end: "2023-04-21"}
+  - {year: 2024, start: "2024-03-12", end: "2024-04-09"}
+  - {year: 2025, start: "2025-03-02", end: "2025-03-30"}
+  - {year: 2026, start: "2026-02-19", end: "2026-03-20"}
+# Evening peak used for peak-hour metrics and the Peak Cost Lens (PKT).
+peak_hours_pkt: [18, 19, 20, 21, 22]
+seasons:
+  summer: [5, 6, 7, 8, 9]
+  winter: [11, 12, 1, 2]
+  shoulder: [3, 4, 10]
