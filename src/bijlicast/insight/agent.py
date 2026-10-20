@@ -302,8 +302,10 @@ def _hours(d: Draft, hours: str) -> str:
 
 
 class InsightAgent:
-    def __init__(self, retriever=None, today: pd.Timestamp | None = None):
-        self.con = connect(read_only=True)
+    def __init__(self, retriever=None, today: pd.Timestamp | None = None, read_only: bool = False):
+        # DuckDB allows one connection configuration per file per process; the pipeline writes
+        # through this same connection, a dashboard can pass read_only=True.
+        self.con = connect(read_only=read_only)
         self.today = today or pd.Timestamp.now(tz="Asia/Karachi").tz_localize(None)
         if retriever is None:
             from .index import Retriever
@@ -571,16 +573,19 @@ def _best_sentences(text: str, q: str, max_chars: int = 320) -> str:
     return out or text[:max_chars]
 
 
-def log_answers(answers: list[Answer]) -> None:
+def log_answers(answers: list[Answer], con=None) -> None:
     """Append answers to gold.insight_log (needs a writable connection)."""
-    con = connect()
+    own = con is None
+    con = con or connect()
     df = pd.DataFrame([{**asdict(a), "row_ids": json.dumps(a.row_ids), "citations": json.dumps(a.citations)}
                        for a in answers])
     con.register("_a", df)
     con.execute("CREATE SCHEMA IF NOT EXISTS gold")
     con.execute("CREATE TABLE IF NOT EXISTS gold.insight_log AS SELECT * FROM _a WHERE 1=0")
     con.execute("INSERT INTO gold.insight_log SELECT * FROM _a")
-    con.close()
+    con.unregister("_a")
+    if own:
+        con.close()
 
 
 if __name__ == "__main__":

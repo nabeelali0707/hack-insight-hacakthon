@@ -10,7 +10,7 @@ import re
 
 import pandas as pd
 
-from ..warehouse import _write, connect
+from ..warehouse import _write
 
 
 def _num_in(text: str, value: float, fmt: str = "{:,.0f}") -> bool:
@@ -81,11 +81,9 @@ def run_golden(agent=None) -> pd.DataFrame:
                      "citations": ", ".join(c["doc_id"] + (f" p.{c['page']}" if c["page"] else "") for c in a.citations),
                      "answer": a.text, "asked_at_utc": a.asked_at_utc})
     df = pd.DataFrame(rows)
+    _write(agent.con, "gold", "golden_eval", df)
     if own:
         agent.con.close()
-    con = connect()
-    _write(con, "gold", "golden_eval", df)
-    con.close()
     return df
 
 

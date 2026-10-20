@@ -69,17 +69,17 @@ def step_insight() -> dict:
     from ..insight.agent import InsightAgent, log_answers
     from ..insight.evaluate import run_golden
     agent = InsightAgent()
-    answers = [agent.ask(q, lang) for _, q, lang in BRIEF_QUESTIONS]
-    briefs = pd.DataFrame([{"brief_id": bid, "lang": lang, "question": a.question, "status": a.status,
-                            "text": a.text, "row_ids": json.dumps(a.row_ids), "citations": json.dumps(a.citations),
-                            "generated_at_utc": a.asked_at_utc}
-                           for (bid, _, lang), a in zip(BRIEF_QUESTIONS, answers)])
-    golden = run_golden(agent)
-    agent.con.close()
-    log_answers(answers)
-    con = connect()
-    _write(con, "gold", "briefs", briefs)
-    con.close()
+    try:
+        answers = [agent.ask(q, lang) for _, q, lang in BRIEF_QUESTIONS]
+        briefs = pd.DataFrame([{"brief_id": bid, "lang": lang, "question": a.question, "status": a.status,
+                                "text": a.text, "row_ids": json.dumps(a.row_ids), "citations": json.dumps(a.citations),
+                                "generated_at_utc": a.asked_at_utc}
+                               for (bid, _, lang), a in zip(BRIEF_QUESTIONS, answers)])
+        golden = run_golden(agent)
+        log_answers(answers, agent.con)
+        _write(agent.con, "gold", "briefs", briefs)
+    finally:
+        agent.con.close()
     return {"briefs": int(len(briefs)), "golden_passed": int(golden["passed"].sum()),
             "golden_total": int(len(golden))}
 
