@@ -16,7 +16,7 @@ TARGETS = {
     "quality": ["quality"],
 }
 
-MODULES = {"model": ["bijlicast.model.train", "bijlicast.model.report"]}
+MODULES = {"model": ["bijlicast.model.train", "bijlicast.model.report"], "optimize": ["bijlicast.model.optimize"]}
 
 if __name__ == "__main__":
     target = sys.argv[1] if len(sys.argv) > 1 else "data"

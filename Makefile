@@ -26,3 +26,7 @@ all: data
 model:
 	$(PYTHON) -m bijlicast.model.train
 	$(PYTHON) -m bijlicast.model.report
+
+## Optimization experiments (validation only) -> docs/optimization_log.md
+optimize:
+	$(PYTHON) -m bijlicast.model.optimize

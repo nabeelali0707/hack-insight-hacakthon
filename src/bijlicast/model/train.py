@@ -1,11 +1,12 @@
 """Train, evaluate and save the BijliCast demand-profile model.
 
 Protocol (docs/baseline_declaration.md):
-  train      targets <= 2025-08 for tuning; final model on targets <= 2025-11
-             (everything ISMO had published before the first test origin, 1 Jan 2026)
-  validation 2025-10 .. 2025-12 (hyper-parameter choice only)
-  test       2026-01 .. 2026-09, evaluated ONCE with ex-ante (climatology) weather
-  intervals  split-conformal 80% from rolling-origin out-of-sample residuals (train + validation)
+  validation rolling-origin over every usable month <= 2025-12: each month is forecast by a
+             model trained only on months published before its origin (<= t - 2), with
+             ex-ante climatology weather. Used for hyper-parameters and conformal residuals.
+  final fit  targets <= 2025-11 (everything ISMO had published before the first test origin)
+  test       2026-01 .. 2026-09, ex-ante weather; never used for any choice
+  intervals  split-conformal 80% from the rolling-origin out-of-sample residuals
 """
 
 from __future__ import annotations
@@ -26,16 +27,16 @@ from .baseline import seasonal_naive
 from .features import FEATURES, build_panel, load_inputs
 
 SEED = 42
-TUNE_TRAIN_END = pd.Timestamp("2025-08-01")
 VAL_MONTHS = pd.date_range("2025-10-01", "2025-12-01", freq="MS")
 FINAL_TRAIN_END = pd.Timestamp("2025-11-01")
 TEST_START, TEST_END = pd.Timestamp("2026-01-01"), pd.Timestamp("2026-09-01")
 ALPHA = 0.20  # 80% intervals
 
 PARAM_GRID = [
-    {"learning_rate": lr, "max_leaf_nodes": leaves, "l2_regularization": l2, "max_iter": it}
-    for lr in (0.05, 0.1) for leaves in (15, 31) for l2 in (0.0, 1.0) for it in (200, 400)
+    {"learning_rate": lr, "max_leaf_nodes": leaves, "l2_regularization": 1.0, "max_iter": it}
+    for lr in (0.05, 0.1) for leaves in (15, 31) for it in (150, 400)
 ]
+TIE_TOLERANCE = 0.10  # MAPE points: within this of the best, prefer the faster (fewer rounds) model
 
 
 def make_model(params: dict) -> HistGradientBoostingRegressor:
@@ -119,20 +120,24 @@ def run(verbose: bool = True) -> dict:
     clim = build_panel(prof, wx, weather_mode="climatology").dropna(subset=["target"])
     t_features = time.time() - t0
 
-    # ---- hyper-parameters chosen on validation months only (ex-ante inputs)
-    tune_tr = actual[actual.period <= TUNE_TRAIN_END]
-    val = clim[clim.period.isin(VAL_MONTHS)]
-    scores = []
-    for p in PARAM_GRID:
-        m = fit(tune_tr, p)
-        scores.append({**p, "val_mape": mape(val.y, predict_mw(m, val))})
-    scores = pd.DataFrame(scores).sort_values("val_mape")
-    best = {k: (int(v) if k in ("max_leaf_nodes", "max_iter") else float(v))
-            for k, v in scores.iloc[0].items() if k != "val_mape"}
-
-    # ---- conformal calibration on rolling-origin residuals (train + validation months)
+    # ---- hyper-parameters chosen on rolling-origin VALIDATION (months <= Dec 2025, ex-ante inputs).
+    # The same out-of-sample residuals calibrate the conformal intervals.
     cal_months = sorted(m for m in actual.period.unique() if m <= VAL_MONTHS[-1])
-    resid = rolling_residuals(actual, clim, best, cal_months)
+    scores, resid_by = [], {}
+    for i, p in enumerate(PARAM_GRID):
+        r = rolling_residuals(actual, clim, p, cal_months)
+        resid_by[i] = r
+        yv = clim.set_index(["entity", "period", "hour"]).loc[pd.MultiIndex.from_frame(
+            r[["entity", "period", "hour"]].astype({"entity": str}))]
+        pred = yv["lag_level"].to_numpy() * np.exp(yv["target"].to_numpy() - r["log_resid"].to_numpy())
+        scores.append({**p, "val_mape": mape(yv["y"], pred), "grid_id": i})
+    scores = pd.DataFrame(scores)
+    best_score = scores["val_mape"].min()
+    pick = scores[scores.val_mape <= best_score + TIE_TOLERANCE].sort_values(["max_iter", "val_mape"]).iloc[0]
+    scores = scores.sort_values("val_mape")
+    best = {k: (int(pick[k]) if k in ("max_leaf_nodes", "max_iter") else float(pick[k]))
+            for k in ("learning_rate", "max_leaf_nodes", "l2_regularization", "max_iter")}
+    resid = resid_by[int(pick["grid_id"])]
     q_lo, q_hi = np.quantile(resid["log_resid"], [ALPHA / 2, 1 - ALPHA / 2])
 
     # ---- final model and the single test evaluation
@@ -175,7 +180,9 @@ def run(verbose: bool = True) -> dict:
         "conformal_log_quantiles": [float(q_lo), float(q_hi)],
         "n_calibration_residuals": int(len(resid)),
         "best_params": best,
-        "val_mape_best": float(scores.iloc[0]["val_mape"]),
+        "val_mape_best": float(pick["val_mape"]),
+        "selection": f"rolling-origin validation over {len(cal_months)} months <= 2025-12; "
+                     f"fewest rounds within {TIE_TOLERANCE} MAPE points of the best",
         "train_rows_final": int((actual.period <= FINAL_TRAIN_END).sum()),
         "feature_build_s": round(t_features, 2), "final_fit_s": round(t_fit, 3),
         "trained_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
