@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BijliCast - hourly demand planning</title>
+  <meta name="description" content="Hourly electricity demand outlook for K-Electric and Pakistan's DISCOs, built on ISMO, NEPRA and ERA5 data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'%3E%3Cpath fill='%230755F5' d='M14 0 2 16h8l-2 12 14-17h-8.5L14 0Z'/%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="sr-only" href="#view">Skip to content</a>
+  <div class="app">
+    <nav class="rail" id="rail" aria-label="Application areas"></nav>
+    <div class="main">
+      <header class="topbar">
+        <a class="brand" href="#/workspace" aria-label="BijliCast home">
+          <svg viewBox="0 0 24 28" aria-hidden="true"><path fill="currentColor" d="M14 0 2 16h8l-2 12 14-17h-8.5L14 0Z"/></svg>
+          <span>BijliCast</span>
+        </a>
+        <nav class="tabs" id="tabs" aria-label="Workspace views"></nav>
+        <div class="right">
+          <div class="lang" role="group" aria-label="Language">
+            <button type="button" data-lang="en" aria-pressed="true">EN</button>
+            <button type="button" data-lang="ur" aria-pressed="false">اردو</button>
+          </div>
+        </div>
+      </header>
+      <main class="content" id="view" tabindex="-1" aria-live="polite"></main>
+    </div>
+  </div>
+  <div id="drawer-root"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

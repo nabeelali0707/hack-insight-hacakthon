@@ -4,7 +4,7 @@
 PYTHON ?= python
 export PYTHONPATH := src
 
-.PHONY: data data-fast quality model optimize forecast agent golden flow serve export-runs publish test all
+.PHONY: data data-fast quality model optimize forecast agent golden flow serve export-runs publish web test all
 
 ## Rebuild everything from an empty data/ folder: fetch + SHA-256 verify -> cleaned -> gold -> quality checks
 data:
@@ -54,6 +54,11 @@ export-runs:
 publish:
 	$(PYTHON) -m bijlicast.publish proposal
 	$(PYTHON) -m bijlicast.publish summary
+
+## Web app: API + frontend on http://127.0.0.1:8000 (reads the read-only serving snapshot)
+web:
+	$(PYTHON) -m bijlicast.serving
+	$(PYTHON) -m uvicorn bijlicast.api:app --host 127.0.0.1 --port 8000
 
 test:
 	$(PYTHON) -m pytest -q tests

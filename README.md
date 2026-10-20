@@ -96,9 +96,28 @@ Optional LLM wording, where Claude rewrites the wording only and numbers stay co
 Full list and licences: [config/sources.yaml](config/sources.yaml), [manifest.csv](manifest.csv),
 [docs/datasetproposal.pdf](docs/datasetproposal.pdf).
 
-## Frontend data contract (for the dashboard / Hugging Face Space)
+## Web app (dashboard)
 
-The backend is complete; the UI only needs to read these:
+```bash
+make web            # or: python run.py web   ->  http://127.0.0.1:8000
+```
+
+A FastAPI server (`src/bijlicast/api.py`) serves JSON plus a no-build HTML/CSS/JS frontend (`web/`) that follows
+the approved cobalt-and-white design. It has these views:
+- **Workspace:** monthly hourly demand chart with the 80% band, last year's line and the evening window; the
+  month outlook; an hour explorer linked to the chart; the Peak Cost Lens; model performance; data confidence;
+  and the Ask BijliCast assistant with evidence.
+- **Forecasts, Cost lens, Data quality** (top tabs) and **Analysis, Data, Reports, Settings** (left rail).
+- English / اردو (right-to-left), with responsive layouts for desktop, tablet and mobile.
+
+The browser never opens DuckDB. The API reads `data/serve/warehouse.duckdb`, a read-only snapshot the Supervisor
+publishes after every hourly run, so the website can never block the pipeline. Source ages are computed at
+request time, so freshness turns AMBER if the pipeline stops.
+
+## Frontend data contract
+
+The API endpoints (`/api/meta`, `/api/workspace`, `/api/forecasts`, `/api/cost`, `/api/performance`,
+`/api/confidence`, `/api/quality`, `/api/runs`, `/api/sources`, `/api/briefs`, `POST /api/ask`, docs at `/docs`) read these tables:
 
 | Panel | Read from |
 |---|---|

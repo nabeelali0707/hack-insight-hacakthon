@@ -137,6 +137,8 @@ def run_once(run_id: str | None = None, steps=None) -> dict:
         rec["traceback"] = traceback.format_exc()[-2000:]
     rec["finished_at_utc"] = _now()
     _record(rec)
+    from ..serving import publish_snapshot
+    publish_snapshot()  # the web app reads this read-only copy, never the live warehouse
     if rec["status"] == "failed":
         raise RuntimeError(rec["error"])
     return rec

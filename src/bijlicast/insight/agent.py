@@ -74,6 +74,10 @@ T = {
         "ur": "{name}: {month} کے لیے متوقع گرڈ طلب اوسطاً {mean} میگاواٹ ہے۔ سب سے زیادہ طلب تقریباً {peak} میگاواٹ "
               "{ph} بجے کے قریب (پاکستانی وقت) متوقع ہے ({p80} حد: {lo} سے {hi} میگاواٹ)، اور سب سے کم {mh} بجے ({mn} میگاواٹ)۔ {rows}",
     },
+    "vs_last_year": {
+        "en": "Same month last year ({prev}) averaged {pmean} MW, so the outlook is {chg} on last year. {rows}",
+        "ur": "پچھلے سال اسی مہینے ({prev}) میں اوسط طلب {pmean} میگاواٹ تھی، یعنی یہ اندازہ پچھلے سال سے {chg} ہے۔ {rows}",
+    },
     "forecast_basis": {
         "en": "Basis: ISMO data published up to {lag}; {cov} of the month's weather comes from observations and "
               "forecasts, the rest from climatology. {rows}",
@@ -302,10 +306,10 @@ def _hours(d: Draft, hours: str) -> str:
 
 
 class InsightAgent:
-    def __init__(self, retriever=None, today: pd.Timestamp | None = None, read_only: bool = False):
+    def __init__(self, retriever=None, today: pd.Timestamp | None = None, read_only: bool = False, con=None):
         # DuckDB allows one connection configuration per file per process; the pipeline writes
-        # through this same connection, a dashboard can pass read_only=True.
-        self.con = connect(read_only=read_only)
+        # through this same connection, the web API passes a read-only snapshot connection.
+        self.con = con if con is not None else connect(read_only=read_only)
         self.today = today or pd.Timestamp.now(tz="Asia/Karachi").tz_localize(None)
         if retriever is None:
             from .index import Retriever
@@ -390,6 +394,13 @@ class InsightAgent:
             peak=d.num(pk.pred_mw), ph=d.num(int(pk.hour), "{:02d}:00"), p80=d.num(80, "{}%"),
             lo=d.num(pk.lo_mw), hi=d.num(pk.hi_mw), mh=d.num(int(mn.hour), "{:02d}:00"), mn=d.num(mn.pred_mw),
             rows=d.rows([pk.row_id, mn.row_id] + [r for r in fc.row_id if r not in (pk.row_id, mn.row_id)])))
+        ly_m = m - pd.DateOffset(years=1)
+        ly = self.tool_actual(ent, ly_m)
+        if len(ly) == 24:
+            d.add(T["vs_last_year"][lang].format(
+                prev=_month_label(d, ly_m, lang), pmean=d.num(ly.demand_mw.mean()),
+                chg=d.num((fc.pred_mw.mean() / ly.demand_mw.mean() - 1) * 100, "{:+.1f}%"),
+                rows=d.rows(list(ly.row_id))))
         d.add(T["forecast_basis"][lang].format(
             lag=_month_label(d, pd.Timestamp(fc.lag_period.iloc[0]), lang),
             cov=d.num(float(fc.weather_coverage.iloc[0]) * 100, "{:.0f}%"), rows=""))
@@ -521,13 +532,18 @@ class InsightAgent:
         return "dont_know"
 
     # ------------------------------------------------------------------ entry point
-    def ask(self, question: str, lang: str | None = None) -> Answer:
+    def ask(self, question: str, lang: str | None = None, entity: str | None = None,
+            month: str | pd.Timestamp | None = None) -> Answer:
+        """`entity` / `month` are the screen's selected context: used only when the question
+        itself does not name an entity or month (the intent is decided from the question alone)."""
         q = question.strip()
         lang = lang or _lang(q)
         d = Draft()
         ql = q.lower()
-        ent, month = _entity(q), _month(q, self.today)
-        intent = _intent(q, month, self.today)
+        ent, q_month = _entity(q), _month(q, self.today)
+        intent = _intent(q, q_month, self.today)
+        ent = ent or (entity if entity in ENTITY_TERMS else None)
+        month = q_month if q_month is not None else (pd.Timestamp(month) if month else None)
         if any(u in ql or u in q for u in UNCOVERED):
             status = self._dont_know(d, lang, "BijliCast covers K-Electric and the nine DISCOs that ISMO reports "
                                               "(LESCO, FESCO, GEPCO, IESCO, MEPCO, PESCO, QESCO, HESCO, SEPCO); there is no "

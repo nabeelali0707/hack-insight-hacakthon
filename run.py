@@ -25,6 +25,7 @@ TARGETS = {
     "serve": [["bijlicast.pipeline.flow", "serve"]],
     "export-runs": [["bijlicast.pipeline.flow", "export"]],
     "publish": [["bijlicast.publish", "proposal"], ["bijlicast.publish", "summary"]],
+    "web": [["bijlicast.serving"], ["uvicorn", "bijlicast.api:app", "--host", "127.0.0.1", "--port", "8000"]],
     "test": [["pytest", "-q", "tests"]],
 }
 TARGETS["all"] = TARGETS["data"] + TARGETS["model"] + TARGETS["forecast"] + TARGETS["agent"]
