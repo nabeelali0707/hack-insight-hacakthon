@@ -529,10 +529,13 @@ async function viewCost() {
 }
 
 // ------------------------------------------------------------------ DATA QUALITY
-async function viewQuality() {
-  view.innerHTML = `<div class="page-head"><div><h1>${t("dq_title")}</h1><div class="sub">${t("dq_sub")}</div></div>${filtersHTML({ months: false })}</div>
-    <div id="dq">${skel(400)}</div><div class="foot">${t("footer")}</div>`;
-  bindFilters(() => viewQuality());
+async function viewQuality(keep = false) {
+  // keep: a decision-log filter changed - refresh the content in place so the page keeps its scroll position
+  if (!keep) {
+    view.innerHTML = `<div class="page-head"><div><h1>${t("dq_title")}</h1><div class="sub">${t("dq_sub")}</div></div>${filtersHTML({ months: false })}</div>
+      <div id="dq">${skel(400)}</div><div class="foot">${t("footer")}</div>`;
+    bindFilters(() => viewQuality());
+  }
   const [conf, q, runs] = await Promise.all([api(`/api/confidence?entity=${state.entity}`), api(`/api/quality${state.dqFilter ? `?action=${state.dqFilter}` : ""}`), api("/api/runs")]);
   const st = conf.status;
   const actionPill = (a) => pill({ FIX: "neutral", FILL: "neutral", FLAG: "AMBER", PASS: "GREEN" }[a] || "neutral", a);
@@ -566,7 +569,7 @@ async function viewQuality() {
     <section class="card" style="margin-top:16px"><h2>${t("drift_t")}</h2><div class="tbl-wrap scroll-y" style="margin-top:8px"><table class="data"><thead><tr><th>${t("entity")}</th><th>${t("metric")}</th><th class="r">${t("value")}</th><th>${t("status")}</th><th>${t("reason")}</th></tr></thead><tbody>
       ${conf.drift.map((d) => `<tr><td>${esc(entShort(d.entity))}</td><td>${esc(d.metric)}</td><td class="r">${fmt.n2(d.value)}</td><td>${pill(d.status)}</td><td class="reason">${esc(d.detail)}</td></tr>`).join("")}
     </tbody></table></div></section>`;
-  view.querySelectorAll("[data-a]").forEach((b) => b.addEventListener("click", () => { state.dqFilter = b.dataset.a; viewQuality(); }));
+  view.querySelectorAll("[data-a]").forEach((b) => b.addEventListener("click", () => { state.dqFilter = b.dataset.a; viewQuality(true); }));
 }
 
 // ------------------------------------------------------------------ ANALYSIS
