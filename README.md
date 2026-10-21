@@ -1,6 +1,10 @@
 # BijliCast ⚡ - Hourly Demand Intelligence for K-Electric & Pakistan's DISCOs
 
-**HackInsight '26 · Data-to-Decision · Energy demand track**
+**HackInsight '26 · Data-to-Decision · Energy demand track · Team: The Coalition**
+
+**Live demo:** https://nabeelali0960-bijlicast.static.hf.space (a static snapshot of the dashboard on Hugging Face
+Spaces; the full app with the live assistant runs locally with `python run.py web`). Team members and roles are listed
+under [Team](#team-the-coalition).
 
 BijliCast forecasts the **hourly electricity demand profile of K-Electric (Karachi)** and Pakistan's nine other
 distribution companies, using only official Pakistani data plus ERA5 weather.
