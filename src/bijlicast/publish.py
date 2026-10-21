@@ -77,7 +77,7 @@ def proposal() -> str:
     doc = SimpleDocTemplate(str(path), pagesize=A4, leftMargin=14 * mm, rightMargin=14 * mm,
                             topMargin=12 * mm, bottomMargin=12 * mm, title="BijliCast Dataset Proposal")
     el = [Paragraph("BijliCast - Dataset Proposal", H1),
-          Paragraph("HackInsight '26 &middot; Energy demand track &middot; Problem: hourly demand planning for "
+          Paragraph("HackInsight '26 &middot; Team The Coalition &middot; Energy demand track &middot; Problem: hourly demand planning for "
                     "K-Electric (Karachi) and Pakistan's nine DISCOs. All counts below are generated from the "
                     "warehouse and manifest.csv by <font face='Courier'>python -m bijlicast.publish proposal</font>.", P),
           Paragraph("1. Sources (all credible, original publishers, gathered during the event)", H2)]
@@ -158,7 +158,7 @@ def summary() -> str:
     doc = SimpleDocTemplate(str(path), pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
                             topMargin=10 * mm, bottomMargin=8 * mm, title="BijliCast Summary")
     el = [Paragraph("BijliCast: hourly demand intelligence for K-Electric &amp; Pakistan's DISCOs", H1),
-          Paragraph("HackInsight '26 &middot; Energy track &middot; All results are generated from gold tables "
+          Paragraph("HackInsight '26 &middot; Team The Coalition &middot; Energy track &middot; All results are generated from gold tables "
                     "(python -m bijlicast.publish summary); running-cost figures are stated assumptions "
                     "(docs/business_model.md).", SMALL),
           Paragraph("Problem &amp; user", H2),

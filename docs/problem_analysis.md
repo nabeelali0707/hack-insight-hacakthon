@@ -1,6 +1,6 @@
 # Problem Analysis: BijliCast — Karachi & DISCO Hourly Demand Intelligence
 
-Track: **Energy demand** · Team: *(fill in)* · HackInsight '26
+Track: **Energy demand** · Team: **The Coalition** · HackInsight '26
 
 ## 1. Primary user and the decision
 

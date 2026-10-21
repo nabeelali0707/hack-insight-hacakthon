@@ -152,8 +152,17 @@ All tables live in `data/warehouse.duckdb`; gold tables are also exported to `da
 | `src/bijlicast/model/` | Features, declared baseline, training, optimisation experiments, live outlook, report |
 | `src/bijlicast/insight/` | Document index, Insight Agent, number-guarded wording, golden evaluation, cost lens |
 | `src/bijlicast/pipeline/` | Supervisor agent, Prefect flow |
-| `docs/` | Problem analysis, baseline declaration, dataset proposal, business model, optimisation log, summary |
+| `docs/` | Problem analysis, baseline declaration, dataset proposal, business model, optimisation log, summary, presentation, demo video script |
 | `AI_Use_Log.md` | Disclosure of AI assistance |
+
+## Team: The Coalition
+
+| Member | Role |
+|---|---|
+| Nabeel Ali | AI/ML engineer |
+| Saad Najam | Backend engineer |
+| Ayaan Kashif | Backend engineer |
+| Hamza Waseem | Frontend engineer |
 
 Outputs are planning information, not an official ISMO/NEPRA forecast or dispatch instruction. For outages and
 load-shedding, contact K-Electric (118) or your DISCO.
