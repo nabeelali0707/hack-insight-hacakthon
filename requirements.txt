@@ -9,7 +9,6 @@ requests==2.34.2
 urllib3==2.8.0
 PyYAML==6.0.3
 pandera==0.34.1
-holidays==0.107
 pyarrow==26.0.0
 matplotlib==3.11.2
 reportlab==5.0.1

@@ -67,7 +67,8 @@ def run(now: pd.Timestamp | None = None) -> pd.DataFrame:
     now = now or pd.Timestamp.now(tz="Asia/Karachi")
     con = connect()
     prof, wx = load_inputs(con)
-    bundle = joblib.load(MODELS_DIR / "bijlicast_hgb.joblib")
+    from .production import load_live_model
+    bundle = load_live_model()  # approved production model if present, else the evaluated model
     model, feats, (q_lo, q_hi) = bundle["model"], bundle["features"], bundle["q"]
     this_month = pd.Timestamp(now.year, now.month, 1)
     rows = []
@@ -90,7 +91,7 @@ def run(now: pd.Timestamp | None = None) -> pd.DataFrame:
     fc.insert(0, "row_id", "FC-" + fc["entity"] + "-" + fc["period"].dt.strftime("%Y%m") + "-" + fc["hour"].map("{:02d}".format))
     fc["generated_at_utc"] = gen
     fc["weather_snapshot_utc"] = str(snapshot)
-    fc["model_version"] = f"hgb-{bundle['params']['max_iter']}r"
+    fc["model_version"] = bundle["version"]
     for c in ("pred_mw", "lo_mw", "hi_mw", "lag_level", "temp_c", "cdh24"):
         fc[c] = fc[c].round(2)
     fc["period"] = fc["period"].dt.date

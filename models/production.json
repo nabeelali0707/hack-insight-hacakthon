@@ -1,0 +1,29 @@
+{
+  "kind": "production (live outlook only; all reported scores use the evaluated model)",
+  "approved_by": "Team (nabeelali0960), in chat 2026-10-21",
+  "approval_note": "Supervisor SUP-RETRAIN recommendation approved: refit evaluated spec on all published months for the live outlook",
+  "approved_at_utc": "2026-10-21T09:26:47Z",
+  "trained_through": "2026-09",
+  "training_months": 26,
+  "training_rows": 6216,
+  "params": {
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 15,
+    "l2_regularization": 1.0,
+    "max_iter": 150
+  },
+  "version": "hgb-150r-prod-2026-09",
+  "conformal_log_quantiles": [
+    -0.206,
+    0.2288
+  ],
+  "evaluated_model_quantiles": [
+    -0.2141,
+    0.2078
+  ],
+  "n_calibration_residuals": 3120,
+  "coverage_with_new_intervals_all_months": 80.0,
+  "coverage_2026_months_old_intervals": 76.0,
+  "coverage_2026_months_new_intervals": 79.2,
+  "in_sample_mape_not_a_test_score": 6.47
+}

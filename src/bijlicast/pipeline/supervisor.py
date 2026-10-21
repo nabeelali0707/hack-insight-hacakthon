@@ -47,8 +47,13 @@ def step_drift() -> dict:
     con = connect()
     latest = con.execute("SELECT max(period) FROM gold.demand_profile").fetchone()[0]
     con.close()
+    from ..model.production import PROD_META
     from ..model.train import FINAL_TRAIN_END
-    new_months = (pd.Timestamp(latest).to_period("M") - FINAL_TRAIN_END.to_period("M")).n
+    trained_end = FINAL_TRAIN_END
+    if PROD_META.exists():  # an approved production refit resets the clock
+        import json as _json
+        trained_end = pd.Timestamp(_json.loads(PROD_META.read_text(encoding="utf-8"))["trained_through"] + "-01")
+    new_months = (pd.Timestamp(latest).to_period("M") - trained_end.to_period("M")).n
     drifted = dr[dr.status == "DRIFT"]
     return {"n_drift": int(len(drifted)), "n_watch": int((dr.status == "WATCH").sum()),
             "months_since_training": int(new_months),
