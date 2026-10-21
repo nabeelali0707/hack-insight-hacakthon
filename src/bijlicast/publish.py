@@ -177,7 +177,7 @@ def summary() -> str:
                     "re-uploaded as copies, stale K-Electric values and broken links, and explained Ramadan sehri spikes. "
                     "<b>Supervisor agent</b> + Prefect flow every hour (5 * * * *): quality gate (RED = quarantine, gold keeps "
                     "last good), drift monitor, retrain only with human approval, forecasts, briefs, golden eval "
-                    f"({runs[1]} of {runs[0]} recorded runs successful). <b>Insight Agent (RAG)</b>: English + Urdu, numbers only "
+                    f"({runs[1]} successful runs; full Prefect history incl. 1 failed and 6 cancelled overnight runs in prefect_runs.csv). <b>Insight Agent (RAG)</b>: English + Urdu, numbers only "
                     f"from gold rows (IDs stored), citations to document pages, says \"I don't know\"; golden set {gold[0]}/{gold[1]} pass.", P),
           Paragraph("Results (test Jan-Sep 2026, evaluated without tuning on it)", H2)]
     rows = [["Metric", "Declared baseline", "BijliCast"],

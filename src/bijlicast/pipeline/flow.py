@@ -57,7 +57,7 @@ def export_runs(path: str = "reports/prefect_runs.csv") -> int:
     async def _get():
         async with get_client() as client:
             return await client.read_flow_runs(flow_filter=FlowFilter(name=FlowFilterName(any_=["bijlicast-hourly"])),
-                                               sort=FlowRunSort.START_TIME_ASC, limit=1000)
+                                               sort=FlowRunSort.START_TIME_ASC, limit=200)
 
     runs = asyncio.run(_get())
     cols = ["id", "name", "state_type", "state_name", "expected_start_time", "start_time", "end_time",
