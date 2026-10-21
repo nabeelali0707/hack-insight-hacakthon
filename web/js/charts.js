@@ -106,10 +106,10 @@ export function demandChart(container, opts) {
       guide.setAttribute("x1", x(h)); guide.setAttribute("x2", x(h)); guide.setAttribute("visibility", "visible");
       dot.setAttribute("cx", x(h)); dot.setAttribute("cy", y(d.pred)); dot.setAttribute("visibility", vis.forecast ? "visible" : "hidden");
       const b = base.find((r) => r.hour === h);
-      const t = opts.t;
-      tip.innerHTML = `<b>${fmt.hh(h)} PKT</b><br>${t("tip_forecast")}: <b>${fmt.n0(d.pred)} MW</b><br>` +
+      const t = opts.t, L = opts.labels || {};
+      tip.innerHTML = `<b>${fmt.hh(h)} PKT</b><br>${L.forecast || t("tip_forecast")}: <b>${fmt.n0(d.pred)} MW</b><br>` +
         `${t("tip_range")}: ${fmt.n0(d.lo)}-${fmt.n0(d.hi)} MW` +
-        (b ? `<br>${t("tip_base")}: ${fmt.n0(b.value)} MW` : "") + `<br><span class="rid">${d.row_id}</span>`;
+        (b ? `<br>${L.base || t("tip_base")}: ${fmt.n0(b.value)} MW` : "") + (d.row_id ? `<br><span class="rid">${d.row_id}</span>` : "");
       tip.hidden = false;
       const left = Math.min(Math.max(x(h), 90), W - 90);
       tip.style.left = `${left}px`; tip.style.top = `${Math.max(y(d.hi) - 8, 64)}px`;

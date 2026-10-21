@@ -75,6 +75,13 @@ export const STR = {
     static_404: "No exported data exists for this selection yet.",
     prepared_note: "Prepared answer to “{q}” · generated {t} PKT",
     try_these: "Prepared questions",
+    sc_title: "What if it's hotter?", sc_sub: "Shift the month's temperature and see the model's estimated hourly demand",
+    sc_shift: "Temperature shift", sc_shift_sub: "Applied to every hour of the selected month",
+    sc_line: "Scenario", sc_base: "Current outlook", sc_temp: "Hottest hour in the scenario",
+    sc_train: "hottest seen in training: {t}°C", sc_curve: "Response to each shift", sc_delta: "Shift",
+    sc_flag: "outside training range",
+    sc_outside: "This shift takes temperatures to {max}°C, above the hottest seen in training ({train}°C). The estimate is less reliable here.",
+    sc_explain: "The production model re-forecasts every hour with the month's temperatures shifted. Only temperature changes: humidity, sunshine and K-Electric's own power plants are held fixed, so the grid draw carries the whole change. The model learned from 2023-2026, when hotter months also brought other changes (in 2026, a fuel crisis that pushed K-Electric to draw much more from the grid), and tree models respond in steps rather than smoothly. Read the direction and the response curve as indicative; the exact size of a jump is not a forecast.",
   },
   ur: {
     skip: "مواد پر جائیں",
@@ -150,6 +157,13 @@ export const STR = {
     static_404: "اس انتخاب کے لیے ابھی کوئی ڈیٹا موجود نہیں۔",
     prepared_note: "“{q}” کا تیار شدہ جواب · {t} PKT",
     try_these: "تیار شدہ سوالات",
+    sc_title: "اگر گرمی زیادہ ہو تو؟", sc_sub: "مہینے کا درجہ حرارت بدلیں اور ماڈل کی متوقع گھنٹہ وار طلب دیکھیں",
+    sc_shift: "درجہ حرارت میں تبدیلی", sc_shift_sub: "منتخب مہینے کے ہر گھنٹے پر لاگو",
+    sc_line: "منظرنامہ", sc_base: "موجودہ اندازہ", sc_temp: "منظرنامے کا گرم ترین گھنٹہ",
+    sc_train: "تربیت میں سب سے زیادہ: {t}°C", sc_curve: "ہر تبدیلی پر ردِعمل", sc_delta: "تبدیلی",
+    sc_flag: "تربیتی حد سے باہر",
+    sc_outside: "اس تبدیلی سے درجہ حرارت {max}°C تک پہنچتا ہے، جو تربیت میں دیکھے گئے زیادہ سے زیادہ ({train}°C) سے اوپر ہے۔ یہاں اندازہ کم قابلِ اعتماد ہے۔",
+    sc_explain: "پروڈکشن ماڈل مہینے کے درجہ حرارت کو بدل کر ہر گھنٹے کی دوبارہ پیشگوئی کرتا ہے۔ صرف درجہ حرارت بدلتا ہے: نمی، دھوپ اور کے-الیکٹرک کے اپنے پلانٹ وہی رہتے ہیں، اس لیے ساری تبدیلی گرڈ سے لی گئی بجلی میں آتی ہے۔ ماڈل نے 2023 تا 2026 سے سیکھا، جب گرم مہینوں میں دوسری تبدیلیاں بھی آئیں (2026 میں ایندھن کا بحران، جس سے کے-الیکٹرک نے گرڈ سے کہیں زیادہ بجلی لی)، اور ٹری ماڈل ہموار نہیں بلکہ قدموں میں ردِعمل دیتے ہیں۔ سمت اور ردِعمل کے جدول کو اشارہ سمجھیں؛ کسی چھلانگ کا درست حجم پیشگوئی نہیں۔",
   },
 };
 

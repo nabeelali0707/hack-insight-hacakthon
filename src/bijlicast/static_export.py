@@ -104,6 +104,11 @@ def export_data(with_answers: bool = True) -> dict:
             _save(f"cost/{e}_{p}.json", get(f"/api/cost?entity={e}&period={p}")); n += 1
         _save(f"performance/{e}.json", get(f"/api/performance?entity={e}"))
         _save(f"confidence/{e}.json", get(f"/api/confidence?entity={e}")); n += 2
+    from .model.scenario import ALLOWED
+    for e in ents:
+        for m in months:
+            for d in ALLOWED:
+                _save(f"scenario/{e}_{m}_{d:g}.json", get(f"/api/scenario?entity={e}&month={m}&delta={d:g}")); n += 1
     for name, url in (("quality.json", "/api/quality"), ("runs.json", "/api/runs"), ("sources.json", "/api/sources")):
         _save(name, get(url)); n += 1
     for lang in ("en", "ur"):

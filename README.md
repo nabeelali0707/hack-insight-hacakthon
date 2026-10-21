@@ -107,7 +107,17 @@ the approved cobalt-and-white design. It has these views:
 - **Workspace:** monthly hourly demand chart with the 80% band, last year's line and the evening window; the
   month outlook; an hour explorer linked to the chart; the Peak Cost Lens; model performance; data confidence;
   and the Ask BijliCast assistant with evidence.
-- **Forecasts, Cost lens, Data quality** (top tabs) and **Analysis, Data, Reports, Settings** (left rail).
+- **Forecasts, Cost lens, Data quality** (top tabs) and **Analysis, Scenarios, Data, Reports, Settings** (left rail).
+- **Scenarios:** "what if it's hotter?" re-forecasts the month with temperatures shifted by -2 to +5 °C and shows
+  the whole response curve, flagging shifts outside the training range.
+
+**Two models, kept separate.**
+- The **evaluated model** (`models/bijlicast_hgb.joblib`, trained on months up to Nov 2025) produces every reported
+  score, backtest row and figure.
+- The **production model** (`models/bijlicast_prod.joblib`) uses the same specification refit on all published months
+  through Sep 2026. The team approved it on 21 Oct 2026, answering the Supervisor's retrain request (approval recorded
+  in `models/production.json`), and it powers only the live outlook and Scenarios. Its 80% ranges are re-calibrated
+  on rolling out-of-sample errors: on the 2026 months they cover 79.2%, against 76.0% for the old ranges.
 - English / اردو (right-to-left), with responsive layouts for desktop, tablet and mobile.
 
 The browser never opens DuckDB. The API reads `data/serve/warehouse.duckdb`, a read-only snapshot the Supervisor

@@ -37,6 +37,20 @@ def test_missing_month_is_empty_not_zero(client):
     assert ws["forecast"] == [] and ws["outlook"] is None and ws["empty_reason"]
 
 
+@needs_warehouse
+def test_scenario_zero_shift_matches_live_outlook(client):
+    meta = client.get("/api/meta").json()
+    month = meta["forecast_months"][-1]
+    s = client.get(f"/api/scenario?entity=KE&month={month}&delta=0").json()
+    ws = client.get(f"/api/workspace?entity=KE&month={month}").json()
+    assert len(s["hours"]) == 24 and len(s["curve"]) == 7
+    assert abs(s["summary"]["scen_mean_mw"] - ws["outlook"]["mean_mw"]) < 1.0   # same model, same weather
+    hot = client.get(f"/api/scenario?entity=KE&month={month}&delta=3").json()
+    assert all(h["temp_scen"] == round(h["temp_base"] + 3, 1) or abs(h["temp_scen"] - h["temp_base"] - 3) < 0.11
+               for h in hot["hours"])
+    assert client.get(f"/api/scenario?entity=KE&month={month}&delta=4").status_code == 400
+
+
 @needs_index
 def test_ask_returns_evidence(client):
     a = client.post("/api/ask", json={"question": "Compare next month with last year", "entity": "KE"}).json()

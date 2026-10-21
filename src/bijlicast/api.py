@@ -158,6 +158,17 @@ def forecasts(month: str | None = None):
     return {"month": month, "entities": out}
 
 
+@app.get("/api/scenario")
+def scenario_ep(entity: str = "KE", month: str | None = None, delta: float = 3.0):
+    from .model.scenario import ALLOWED, scenario
+    if delta not in ALLOWED:
+        raise HTTPException(400, f"delta must be one of {list(ALLOWED)}")
+    if not month:
+        with db() as con:
+            month = con.execute("SELECT strftime(max(period), '%Y-%m') FROM gold.forecast_outlook").fetchone()[0]
+    return scenario(entity, month, delta, with_curve=True)
+
+
 @app.get("/api/forecast_history")
 def forecast_history(entity: str = "KE", month: str | None = None):
     with db() as con:

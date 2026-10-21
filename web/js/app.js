@@ -41,6 +41,7 @@ function staticPath(path) {
     runs: () => "data/runs.json",
     sources: () => "data/sources.json",
     briefs: () => `data/briefs_${q.get("lang") || "en"}.json`,
+    scenario: () => `data/scenario/${q.get("entity")}_${q.get("month")}_${q.get("delta")}.json`,
   };
   return files[p] ? files[p]() : null;
 }
@@ -116,7 +117,7 @@ function renderShell() {
   document.getElementById("rail").innerHTML =
     railItem("home", "#/workspace", "home", t("rail_home")) +
     railItem("analysis", "#/analysis", "analysis", t("rail_analysis")) +
-    `<button type="button" aria-disabled="true" title="${esc(t("scenarios_soon"))}" aria-label="${esc(t("scenarios_soon"))}">${icons.scenarios}<span>${t("rail_scenarios")}</span></button>` +
+    railItem("scenarios", "#/scenarios", "scenarios", t("rail_scenarios")) +
     railItem("data", "#/data", "data", t("rail_data")) +
     railItem("reports", "#/reports", "reports", t("rail_reports")) +
     `<div class="spacer"></div>` +
@@ -126,7 +127,7 @@ function renderShell() {
     const tab = (k, label) => `<a href="#/${k}" ${r === k ? 'aria-current="page"' : ""}>${label}</a>`;
     tabs.innerHTML = tab("workspace", t("tab_workspace")) + tab("forecasts", t("tab_forecasts")) + tab("cost", t("tab_cost")) + tab("quality", t("tab_quality"));
   } else {
-    const names = { analysis: "rail_analysis", data: "rail_data", reports: "rail_reports", settings: "rail_settings" };
+    const names = { analysis: "rail_analysis", scenarios: "rail_scenarios", data: "rail_data", reports: "rail_reports", settings: "rail_settings" };
     tabs.innerHTML = `<span class="area-title" style="align-self:center">${t(names[area] || "rail_home")}</span>`;
   }
   document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
@@ -137,7 +138,7 @@ async function render() {
   renderShell();
   const r = route();
   const views = { workspace: viewWorkspace, forecasts: viewForecasts, cost: viewCost, quality: viewQuality,
-    analysis: viewAnalysis, data: viewData, reports: viewReports, settings: viewSettings };
+    analysis: viewAnalysis, scenarios: viewScenarios, data: viewData, reports: viewReports, settings: viewSettings };
   try {
     if (!state.meta) state.meta = await api("/api/meta");
     if (!state.month || !state.meta.forecast_months.includes(state.month)) state.month = state.meta.default_month;
@@ -594,6 +595,54 @@ async function viewAnalysis() {
       <img class="fig" style="margin-top:10px" src="files/reports/figures/baseline_vs_model.png" alt="Bar chart: test MAPE by entity, model versus declared baseline">
       <img class="fig" style="margin-top:10px" src="files/reports/figures/ke_profiles_test.png" alt="K-Electric hourly profiles for each test month: actual, model with 80% interval, and baseline">
       <img class="fig" style="margin-top:10px" src="files/reports/figures/errors_by_group.png" alt="Test MAPE by season and hour band, model versus baseline"></section>`;
+}
+
+// ------------------------------------------------------------------ SCENARIOS (what if it is hotter?)
+const DELTAS = [-2, -1, 0, 1, 2, 3, 5];
+const sgn = (d) => (d > 0 ? `+${d}` : `${d}`);
+async function viewScenarios() {
+  if (state.delta == null) state.delta = 3;
+  view.innerHTML = `<div class="page-head"><div><h1>${t("sc_title")}</h1><div class="sub">${t("sc_sub")}</div></div>${filtersHTML()}</div>
+    <section class="card"><div class="card-head"><div><h2>${t("sc_shift")}</h2><div class="card-sub">${t("sc_shift_sub")}</div></div>
+      <div class="filter-chips" role="group" aria-label="${t("sc_shift")}">${DELTAS.map((d) =>
+        `<button type="button" data-d="${d}" aria-pressed="${d === state.delta}">${sgn(d)}°C</button>`).join("")}</div></div>
+      <div id="sc-body" style="margin-top:12px">${skel(340)}</div></section>
+    <div class="foot">${t("footer")}</div>`;
+  bindFilters(() => viewScenarios());
+  view.querySelectorAll("[data-d]").forEach((b) => b.addEventListener("click", () => { state.delta = +b.dataset.d; viewScenarios(); }));
+  const s = await api(`/api/scenario?entity=${state.entity}&month=${state.month}&delta=${state.delta}`);
+  const body = view.querySelector("#sc-body");
+  if (!s.hours?.length) { body.innerHTML = `<div class="empty"><b>${esc(s.empty_reason || t("no_fc"))}</b></div>`; return; }
+  const m = s.summary, chg = (v, unit = " MW") => `${v > 0 ? "+" : ""}${fmt.n0(v)}${unit}`;
+  body.innerHTML = `
+    ${s.outside_training_range ? `<div class="banner warn" role="status">${icons.warn}<span>${esc(t("sc_outside", { max: s.scenario_max_temp_c, train: s.training_max_temp_c }))}</span></div>` : ""}
+    <div class="tiles">
+      <div class="tile"><div class="k">${t("mean")}</div><div class="stat">${fmt.n0(m.scen_mean_mw)} MW</div>
+        <div class="s">${chg(m.change_mw)} (${m.change_pct > 0 ? "+" : ""}${fmt.n1(m.change_pct)}%) · ${t("sc_base")} ${fmt.n0(m.base_mean_mw)} MW</div></div>
+      <div class="tile"><div class="k">${t("peak")}</div><div class="stat">${fmt.n0(m.scen_peak_mw)} MW</div>
+        <div class="s">${fmt.hh(m.scen_peak_hour)} PKT · ${chg(m.peak_change_mw)}</div></div>
+      <div class="tile"><div class="k">${t("sc_temp")}</div><div class="stat">${fmt.n1(s.scenario_max_temp_c)}°C</div>
+        <div class="s">${esc(t("sc_train", { t: fmt.n1(s.training_max_temp_c) }))}</div></div>
+    </div>
+    <div class="legend" style="margin-top:14px"><span><span class="sw sw-line"></span> ${t("sc_line")} (${sgn(state.delta)}°C)</span>
+      <span><span class="sw sw-band"></span> ${t("lg_band")}</span><span><span class="sw sw-dash"></span> ${t("sc_base")}</span>
+      <span><span class="sw sw-eve"></span> ${t("lg_eve")}</span></div>
+    <div id="sc-chart" class="chart" style="margin-top:6px"></div>
+    <h3 style="margin-top:18px">${t("sc_curve")}</h3>
+    <div class="tbl-wrap" style="margin-top:6px"><table class="data"><thead><tr><th>${t("sc_delta")}</th><th class="r">${t("mean")} (MW)</th>
+      <th class="r">${t("change")}</th><th class="r">${t("peak")} (MW)</th><th></th></tr></thead><tbody>
+      ${(s.curve || []).map((c) => `<tr ${c.delta_c === state.delta ? 'style="font-weight:700"' : ""}><td>${sgn(c.delta_c)}°C</td><td class="r">${fmt.n0(c.mean_mw)}</td>
+        <td class="r">${c.change_pct > 0 ? "+" : ""}${fmt.n1(c.change_pct)}%</td><td class="r">${fmt.n0(c.peak_mw)}</td>
+        <td>${c.outside_training_range ? pill("AMBER", t("sc_flag")) : ""}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="reason">${t("sc_explain")}</p>
+    <p class="period">${esc(s.assumptions)} · model ${esc(s.model_version)} · ${fmt.pct(s.weather_coverage * 100, 0)} ${t("cov")}</p>`;
+  demandChart(body.querySelector("#sc-chart"), {
+    forecast: s.hours.map((h) => ({ hour: h.hour, pred: h.scen, lo: h.lo, hi: h.hi })),
+    baseline: s.hours.map((h) => ({ hour: h.hour, value: h.base })),
+    visible: { forecast: true, band: true, baseline: true, evening: true }, evening: EVENING, selected: null, t,
+    labels: { forecast: `${t("sc_line")} ${sgn(state.delta)}°C`, base: t("sc_base") },
+  });
 }
 
 // ------------------------------------------------------------------ DATA (sources)
